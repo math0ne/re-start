@@ -67,19 +67,21 @@
 </script>
 
 <main>
-    <h1 class="clock">
+    <div class="clock">
         {currentHrs}:{currentMin}:{currentSec}
         <span class="clock-ampm">{currentAmPm}</span>
-    </h1>
-    <h2 class="date">{currentDate}</h2>
-
-    <WeatherWidget {latitude} {longitude} />
-
-    {#if apiToken}
-        <TodoistWidget token={apiToken} />
-    {:else}
-        <p>Please add your Todoist API token to the .env file</p>
-    {/if}
+    </div>
+    <div class="date">{currentDate}</div>
+    <br />
+    <br />
+    <div class="widgets">
+        <WeatherWidget {latitude} {longitude} />
+        {#if apiToken}
+            <TodoistWidget token={apiToken} />
+        {:else}
+            <p>Please add your Todoist API token to the .env file</p>
+        {/if}
+    </div>
 </main>
 
 <style>
@@ -89,13 +91,18 @@
     .clock {
         margin: 0;
         font-size: 3rem;
-        letter-spacing: -0.02ch;
-        font-variant-numeric: tabular-nums;
-        font-feature-settings: 'tnum';
+        font-weight: 300;
+        color: var(--txt-1);
+        line-height: normal;
     }
     .date {
         margin: 0;
         font-size: 1.5rem;
         color: var(--txt-3);
+        line-height: normal;
+    }
+    .widgets {
+        display: flex;
+        gap: 4rem;
     }
 </style>

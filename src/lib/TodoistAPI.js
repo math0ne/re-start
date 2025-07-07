@@ -5,8 +5,10 @@ class TodoistAPI {
     constructor(token) {
         this.token = token
         this.baseUrl = 'https://api.todoist.com/api/v1'
-        this.syncToken = localStorage.getItem('todoist_sync_token') || '*'
-        this.data = JSON.parse(localStorage.getItem('todoist_data') || '{}')
+        this.syncTokenKey = 'todoist_sync_token'
+        this.syncToken = localStorage.getItem(this.syncTokenKey) || '*'
+        this.dataKey = 'todoist_data'
+        this.data = JSON.parse(localStorage.getItem(this.dataKey) || '{}')
     }
 
     /**
@@ -40,7 +42,7 @@ class TodoistAPI {
 
             // Store sync token for next request
             this.syncToken = data.sync_token
-            localStorage.setItem('todoist_sync_token', this.syncToken)
+            localStorage.setItem(this.syncTokenKey, this.syncToken)
 
             console.log(data)
 
@@ -52,7 +54,7 @@ class TodoistAPI {
             if (!isRetry && this.syncToken !== '*') {
                 console.log('retrying with full sync...')
                 this.syncToken = '*'
-                localStorage.setItem('todoist_sync_token', this.syncToken)
+                localStorage.setItem(this.syncTokenKey, this.syncToken)
                 return this.sync(resourceTypes, true)
             }
 
@@ -85,7 +87,7 @@ class TodoistAPI {
             }
         }
 
-        localStorage.setItem('todoist_data', JSON.stringify(this.data))
+        localStorage.setItem(this.dataKey, JSON.stringify(this.data))
     }
 
     /**
@@ -193,11 +195,11 @@ class TodoistAPI {
             })
             .sort((a, b) => {
                 // Sort by: due date, then no date, then child order
-                if (a.due_date_parsed && b.due_date_parsed) {
-                    return a.due_date_parsed - b.due_date_parsed
+                if (a.due_date && b.due_date) {
+                    return a.due_date - b.due_date
                 }
-                if (a.due_date_parsed && !b.due_date_parsed) return -1
-                if (!a.due_date_parsed && b.due_date_parsed) return 1
+                if (a.due_date && !b.due_date) return -1
+                if (!a.due_date && b.due_date) return 1
                 return a.child_order - b.child_order
             })
     }
@@ -280,8 +282,8 @@ class TodoistAPI {
      * Clear local storage (for testing or reset)
      */
     clearLocalData() {
-        localStorage.removeItem('todoist_sync_token')
-        localStorage.removeItem('todoist_data')
+        localStorage.removeItem(this.syncTokenKey)
+        localStorage.removeItem(this.dataKey)
         this.syncToken = '*'
         this.data = {}
     }

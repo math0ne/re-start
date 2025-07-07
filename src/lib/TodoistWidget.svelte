@@ -66,15 +66,17 @@
             (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
         )
 
-        if (daysDiff < 0) return 'Overdue'
-        if (daysDiff === 0) return 'Today'
-        if (daysDiff === 1) return 'Tomorrow'
+        if (daysDiff < 0) return 'overdue'
+        if (daysDiff === 0) return 'today'
+        if (daysDiff === 1) return 'tmrw'
 
-        return due.toLocaleDateString('en-US', {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric',
-        })
+        return due
+            .toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+            })
+            .toLowerCase()
     }
 
     function getDueDateClass(dueString) {
@@ -94,7 +96,6 @@
 
 <div class="todoist-widget">
     <div class="widget-header">
-        <h2>Tasks</h2>
         <button onclick={loadTasks} disabled={loading} class="refresh-btn">
             {loading ? '⟳' : '↻'}
         </button>
@@ -110,32 +111,24 @@
         <div class="loading">Loading tasks...</div>
     {:else if tasks.length === 0}
         <div class="empty-state">
-            <p>No tasks found! 🎉</p>
+            <p>no tasks left! :)</p>
         </div>
     {:else}
         <div class="tasks-list">
             {#each tasks as task}
-                <div class="task-item">
+                <div class="task">
                     <button
                         onclick={() => completeTask(task.id)}
-                        class="complete-btn"
-                        title="Complete task"
+                        class="checkbox"
                     >
-                        ✓
+                        [ ]
                     </button>
-
-                    <div class="task-content">
-                        <span class="task-title">{task.content}</span>
-                        {#if task.due}
-                            <span
-                                class="task-due {getDueDateClass(
-                                    task.due.date
-                                )}"
-                            >
-                                {formatDueDate(task.due_date)}
-                            </span>
-                        {/if}
-                    </div>
+                    <span class="task-title">{task.content}</span>
+                    {#if task.due}
+                        <span class="task-due {getDueDateClass(task.due.date)}">
+                            {formatDueDate(task.due_date)}
+                        </span>
+                    {/if}
                 </div>
             {/each}
         </div>
@@ -143,4 +136,7 @@
 </div>
 
 <style>
+    .task-due {
+        color: var(--txt-3);
+    }
 </style>

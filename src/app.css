@@ -3,14 +3,14 @@
     --bg-2: oklch(23% 0 0);
     --bg-3: oklch(27% 0 0);
     --bg-4: oklch(31% 0 0);
-    --txt-4: oklch(40% 0 0);
     --txt-3: oklch(55% 0 0);
     --txt-2: oklch(75% 0 0);
-    --txt-1: oklch(85% 0 0);
+    --txt-1: oklch(90% 0 0);
     --txt-0: oklch(95% 0 0);
 
     font-family: 'Geist Mono';
     font-weight: 400;
+    line-height: 1.5;
 }
 
 * {
@@ -34,5 +34,13 @@ h1,
 h2,
 h3,
 h4 {
-    font-weight: 400;
+    font-weight: 600;
+}
+
+button {
+    background: none;
+    border: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
 }

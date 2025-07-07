@@ -35,52 +35,54 @@
 </script>
 
 <div class="weather-widget">
-    {#if isLoading}
-        <p>Loading weather data...</p>
-    {:else if error}
-        <p class="error">Error: {error}</p>
-        <button onclick={loadWeatherData}>Retry</button>
+    {#if isLoading}{:else if error}
+        <p class="error">error: {error}</p>
+        <button onclick={loadWeatherData}>retry</button>
     {:else if currentWeather}
-        <!-- Current Weather -->
-        <div class="current-weather">
-            <div class="current-info">
-                <p>
-                    {currentWeather.description}
-                </p>
-                <p>
-                    {currentWeather.temperature_2m}°C
-                </p>
-                <p>
-                    <strong>Humidity:</strong>
-                    {currentWeather.relative_humidity_2m}%
-                </p>
-                <p>
-                    <strong>Precipitation:</strong>
-                    {currentWeather.precipitation_probability}%
-                </p>
-                <p>
-                    <strong>Wind Speed:</strong>
-                    {currentWeather.wind_speed_10m} km/h
-                </p>
+        <div class="temp">{currentWeather.temperature_2m}°</div>
+        <div class="weather">{currentWeather.description}</div>
+        <br />
+        <div class="stats">
+            <div class="col">
+                <div>
+                    humi <span class="value"
+                        >{currentWeather.relative_humidity_2m}%</span
+                    >
+                </div>
+                <div>
+                    prec <span class="value"
+                        >{currentWeather.precipitation_probability}%</span
+                    >
+                </div>
+            </div>
+            <div class="col">
+                <div>
+                    wind <span class="value"
+                        >{currentWeather.wind_speed_10m} mph</span
+                    >
+                </div>
+                <div>
+                    feel <span class="value"
+                        >{currentWeather.apparent_temperature}°</span
+                    >
+                </div>
             </div>
         </div>
-
-        <!-- Hourly Forecasts -->
-        <div class="hourly-forecast">
-            <h4>Upcoming Forecast</h4>
-            <div class="forecast-list">
+        <br />
+        <div class="forecast">
+            <div class="col">
                 {#each hourlyForecasts as forecast}
-                    <div class="forecast-item">
-                        <span class="forecast-time"
-                            >{forecast.formattedTime}</span
-                        >
-                        <span class="forecast-temp"
-                            >{forecast.temperature}°C</span
-                        >
-                        <span class="forecast-weather"
-                            >{forecast.description}</span
-                        >
-                    </div>
+                    <div class="forecast-time">{forecast.formattedTime}</div>
+                {/each}
+            </div>
+            <div class="col">
+                {#each hourlyForecasts as forecast}
+                    <div class="forecast-temp">{forecast.temperature}°</div>
+                {/each}
+            </div>
+            <div class="col">
+                {#each hourlyForecasts as forecast}
+                    <div class="forecast-weather">{forecast.description}</div>
                 {/each}
             </div>
         </div>
@@ -88,4 +90,35 @@
 </div>
 
 <style>
+    .temp {
+        font-size: 2rem;
+        font-weight: 300;
+        color: var(--txt-1);
+        line-height: normal;
+    }
+    .weather {
+        font-size: 1.25rem;
+        color: var(--txt-3);
+    }
+    .value {
+        color: var(--txt-1);
+    }
+    .stats {
+        display: flex;
+        gap: 2rem;
+    }
+    .forecast {
+        display: flex;
+        gap: 2rem;
+    }
+    .forecast-time {
+        text-align: end;
+    }
+    .forecast-temp {
+        text-align: end;
+        color: var(--txt-1);
+    }
+    .forecast-weather {
+        color: var(--txt-3);
+    }
 </style>

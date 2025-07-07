@@ -8,13 +8,21 @@ class WeatherAPI {
         this.baseUrl = 'https://api.open-meteo.com/v1/forecast'
         this.latitude = latitude
         this.longitude = longitude
+        this.temperatureUnit = 'fahrenheit'
+        this.windSpeedUnit = 'mph'
+        this.cacheKey = `weather_data`
+        this.cacheExpiry = 15 * 60 * 1000 // 15 minutes in milliseconds
     }
 
     /**
      * Get processed weather data including current conditions and hourly forecasts
      */
     async getWeather() {
-        const rawData = await this._fetchWeatherData()
+        let rawData = this._getCachedWeather()
+        if (!rawData) {
+            rawData = await this._fetchWeatherData()
+            this._cacheWeather(rawData)
+        }
 
         return {
             current: this._processCurrentWeather(rawData.current),
@@ -34,9 +42,11 @@ class WeatherAPI {
             longitude: this.longitude.toString(),
             hourly: 'temperature_2m,weather_code,is_day',
             current:
-                'temperature_2m,weather_code,relative_humidity_2m,precipitation_probability,wind_speed_10m,is_day',
+                'temperature_2m,weather_code,relative_humidity_2m,precipitation_probability,wind_speed_10m,apparent_temperature,is_day',
             timezone: 'auto',
             forecast_hours: '24',
+            temperature_unit: this.temperatureUnit,
+            wind_speed_unit: this.windSpeedUnit,
         })
 
         const response = await fetch(`${this.baseUrl}?${params}`)
@@ -52,6 +62,10 @@ class WeatherAPI {
      * Process current weather data with descriptions
      */
     _processCurrentWeather(currentData) {
+        currentData.temperature_2m = currentData.temperature_2m.toFixed(0)
+        currentData.wind_speed_10m = currentData.wind_speed_10m.toFixed(0)
+        currentData.apparent_temperature =
+            currentData.apparent_temperature.toFixed(0)
         return {
             ...currentData,
             description: this._getWeatherDescription(
@@ -87,7 +101,7 @@ class WeatherAPI {
             const index = currentIndex + (i + 1) * 3
             forecasts.push({
                 time: hourlyData.time[index],
-                temperature: hourlyData.temperature_2m[index],
+                temperature: hourlyData.temperature_2m[index].toFixed(0),
                 weatherCode: hourlyData.weather_code[index],
                 description: this._getWeatherDescription(
                     hourlyData.weather_code[index],
@@ -108,18 +122,58 @@ class WeatherAPI {
         return (
             descriptions[weatherCode]?.[timeOfDay]?.description ||
             `Code ${weatherCode}`
-        )
+        ).toLowerCase()
     }
 
     /**
-     * Format time to display (e.g., "2 PM")
+     * Format time to display (e.g., "02 PM")
      */
     _formatTime(timeString) {
         const date = new Date(timeString)
-        return date.toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            hour12: true,
-        })
+        return date
+            .toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                hour12: true,
+            })
+            .toLowerCase()
+    }
+
+    /**
+     * Get cached weather data if it exists and is not expired
+     */
+    _getCachedWeather() {
+        try {
+            const cached = localStorage.getItem(this.cacheKey)
+            if (!cached) return null
+
+            const { data, timestamp } = JSON.parse(cached)
+            const now = Date.now()
+
+            if (now - timestamp < this.cacheExpiry) {
+                return data
+            }
+
+            localStorage.removeItem(this.cacheKey)
+            return null
+        } catch (error) {
+            localStorage.removeItem(this.cacheKey)
+            return null
+        }
+    }
+
+    /**
+     * Cache weather data with timestamp
+     */
+    _cacheWeather(data) {
+        try {
+            const cacheData = {
+                data,
+                timestamp: Date.now(),
+            }
+            localStorage.setItem(this.cacheKey, JSON.stringify(cacheData))
+        } catch (error) {
+            console.warn('Failed to cache weather data:', error)
+        }
     }
 }
 
