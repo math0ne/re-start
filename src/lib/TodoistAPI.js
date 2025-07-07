@@ -30,7 +30,7 @@ class TodoistAPI {
             })
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`)
+                throw new Error(`todoist fetch failed: ${response.status}`)
             }
 
             const data = await response.json()
@@ -46,11 +46,11 @@ class TodoistAPI {
 
             return data
         } catch (error) {
-            console.error('Sync error:', error)
+            console.error('sync error:', error)
 
             // Retry with full sync once
             if (!isRetry && this.syncToken !== '*') {
-                console.log('Sync failed, retrying with full sync...')
+                console.log('retrying with full sync...')
                 this.syncToken = '*'
                 localStorage.setItem('todoist_sync_token', this.syncToken)
                 return this.sync(resourceTypes, true)
@@ -256,7 +256,9 @@ class TodoistAPI {
             })
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`)
+                throw new Error(
+                    `todoist command fetch failed: ${response.status}`
+                )
             }
 
             const data = await response.json()
@@ -269,7 +271,7 @@ class TodoistAPI {
 
             return data
         } catch (error) {
-            console.error('Command execution error:', error)
+            console.error('todoist command execution error:', error)
             throw error
         }
     }

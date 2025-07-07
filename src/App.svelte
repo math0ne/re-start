@@ -1,32 +1,43 @@
 <script>
     import { onMount, onDestroy } from 'svelte'
     import TodoistWidget from './lib/TodoistWidget.svelte'
+    import WeatherWidget from './lib/WeatherWidget.svelte'
 
     // Get API token from environment variables
     const apiToken = import.meta.env.VITE_TODOIST_API_TOKEN
+    const latitude = import.meta.env.VITE_LATITUDE
+    const longitude = import.meta.env.VITE_LONGITUDE
 
     // Clock state
     let currentHrs = $state('')
     let currentMin = $state('')
     let currentSec = $state('')
+    let currentAmPm = $state('')
     let currentDate = $state('')
     let clockInterval = null
 
     function updateTime() {
         const now = new Date()
 
-        // Format time (HH:MM:SS) and replace colons with styled spans
-        currentHrs = now.getHours().toString().padStart(2, '0')
+        // Convert to 12-hour format
+        let hours = now.getHours()
+        currentAmPm = hours >= 12 ? 'pm' : 'am'
+        hours = hours % 12
+        if (hours === 0) hours = 12 // Convert 0 to 12 for 12am/12pm
+
+        currentHrs = hours.toString().padStart(2, '0')
         currentMin = now.getMinutes().toString().padStart(2, '0')
         currentSec = now.getSeconds().toString().padStart(2, '0')
 
         // Format date (e.g., "Sunday, July 6, 2025")
-        currentDate = now.toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        })
+        currentDate = now
+            .toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            })
+            .toLowerCase()
     }
 
     function startClock() {
@@ -57,9 +68,13 @@
 
 <main>
     <h1 class="clock">
-        {currentHrs}:{currentMin}<span class="clock-sec">:{currentSec}</span>
+        {currentHrs}:{currentMin}:{currentSec}
+        <span class="clock-ampm">{currentAmPm}</span>
     </h1>
     <h2 class="date">{currentDate}</h2>
+
+    <WeatherWidget {latitude} {longitude} />
+
     {#if apiToken}
         <TodoistWidget token={apiToken} />
     {:else}
@@ -77,9 +92,6 @@
         letter-spacing: -0.02ch;
         font-variant-numeric: tabular-nums;
         font-feature-settings: 'tnum';
-    }
-    .clock-sec {
-        font-size: 2.25rem;
     }
     .date {
         margin: 0;
