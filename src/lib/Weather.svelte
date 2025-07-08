@@ -3,7 +3,12 @@
     import WeatherAPI from './WeatherAPI.js'
 
     // Props
-    let { latitude, longitude } = $props()
+    let {
+        latitude,
+        longitude,
+        tempFormat = 'fahrenheit',
+        speedFormat = 'mph',
+    } = $props()
 
     // State variables
     let currentWeather = $state(null)
@@ -11,7 +16,12 @@
     let isLoading = $state(true)
     let error = $state(null)
 
-    const weatherAPI = new WeatherAPI(latitude, longitude)
+    const weatherAPI = new WeatherAPI(
+        latitude,
+        longitude,
+        tempFormat,
+        speedFormat
+    )
 
     // Load weather data
     async function loadWeatherData() {
@@ -58,7 +68,7 @@
             <div class="col">
                 <div>
                     wind <span class="value"
-                        >{currentWeather.wind_speed_10m} mph</span
+                        >{currentWeather.wind_speed_10m} {speedFormat}</span
                     >
                 </div>
                 <div>

@@ -4,12 +4,17 @@ import descriptions from './descriptions.json'
  * OpenMeteo Weather API client with data processing utilities
  */
 class WeatherAPI {
-    constructor(latitude, longitude) {
+    constructor(
+        latitude,
+        longitude,
+        tempFormat = 'fahrenheit',
+        speedFormat = 'mph'
+    ) {
         this.baseUrl = 'https://api.open-meteo.com/v1/forecast'
         this.latitude = latitude
         this.longitude = longitude
-        this.temperatureUnit = 'fahrenheit'
-        this.windSpeedUnit = 'mph'
+        this.temperatureUnit = tempFormat
+        this.windSpeedUnit = speedFormat
         this.cacheKey = `weather_data`
         this.cacheExpiry = 15 * 60 * 1000 // 15 minutes in milliseconds
     }

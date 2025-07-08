@@ -3,13 +3,36 @@
     import Todoist from './lib/Todoist.svelte'
     import Weather from './lib/Weather.svelte'
     import Links from './lib/Links.svelte'
+    import Settings from './lib/Settings.svelte'
 
-    // Get API token from environment variables
-    const apiToken = import.meta.env.VITE_TODOIST_API_TOKEN
-    const latitude = import.meta.env.VITE_LATITUDE
-    const longitude = import.meta.env.VITE_LONGITUDE
+    let settings = $state({
+        todoistApiToken: '',
+        latitude: '',
+        longitude: '',
+        tempFormat: 'fahrenheit',
+        speedFormat: 'mph',
+        linksPerColumn: 4,
+        links: [
+            { title: 'gmail', url: 'https://mail.google.com' },
+            { title: 'calendar', url: 'https://calendar.google.com' },
+            { title: 'drive', url: 'https://drive.google.com' },
+            { title: 'docs', url: 'https://docs.google.com' },
+            { title: 'github', url: 'https://github.com' },
+            { title: 'slack', url: 'https://slack.com' },
+            { title: 'keep', url: 'https://keep.google.com' },
+            { title: 'leetcode', url: 'https://leetcode.com/problemset' },
+            { title: 'perplexity', url: 'https://perplexity.ai' },
+            { title: 'claude', url: 'https://claude.ai' },
+            { title: 'aistudio', url: 'https://aistudio.google.com' },
+            { title: 'chatgpt', url: 'https://chat.openai.com' },
+            { title: 'youtube', url: 'https://youtube.com' },
+            { title: 'reddit', url: 'https://reddit.com' },
+            { title: 'twitter', url: 'https://x.com' },
+            { title: 'feedly', url: 'https://feedly.com' },
+        ],
+    })
+    let showSettings = $state(false)
 
-    // Clock state
     let currentHrs = $state('')
     let currentMin = $state('')
     let currentSec = $state('')
@@ -24,13 +47,13 @@
         let hours = now.getHours()
         currentAmPm = hours >= 12 ? 'pm' : 'am'
         hours = hours % 12
-        if (hours === 0) hours = 12 // Convert 0 to 12 for 12am/12pm
+        if (hours === 0) hours = 12
 
         currentHrs = hours.toString().padStart(2, '0')
         currentMin = now.getMinutes().toString().padStart(2, '0')
         currentSec = now.getSeconds().toString().padStart(2, '0')
 
-        // Format date (e.g., "Sunday, July 6, 2025")
+        // Format date
         currentDate = now
             .toLocaleDateString('en-US', {
                 weekday: 'long',
@@ -56,7 +79,25 @@
         }, msUntilNextSecond)
     }
 
+    function loadSettings() {
+        const savedSettings = localStorage.getItem('settings')
+        if (savedSettings) {
+            try {
+                const parsed = JSON.parse(savedSettings)
+                settings = { ...settings, ...parsed }
+            } catch (e) {
+                console.error('failed to get settings from localstorage:', e)
+            }
+        }
+    }
+
+    function closeSettings() {
+        showSettings = false
+        localStorage.setItem('settings', JSON.stringify(settings))
+    }
+
     onMount(() => {
+        loadSettings()
         startClock()
     })
 
@@ -76,16 +117,32 @@
     <br />
     <br />
     <div class="widgets">
-        <Weather {latitude} {longitude} />
-        {#if apiToken}
-            <Todoist token={apiToken} />
+        <Weather
+            latitude={settings.latitude}
+            longitude={settings.longitude}
+            tempFormat={settings.tempFormat}
+            speedFormat={settings.speedFormat}
+        />
+        {#if settings.todoistApiToken}
+            <Todoist token={settings.todoistApiToken} />
         {:else}
-            <p>Please add your Todoist API token to the .env file</p>
+            <p>Please configure your Todoist API token in settings</p>
         {/if}
     </div>
     <br />
     <br />
-    <Links />
+    <Links links={settings.links} linksPerColumn={settings.linksPerColumn} />
+
+    <button
+        class="settings-btn"
+        onclick={() => (showSettings = true)}
+        aria-label="Open settings"
+    >
+        settings
+    </button>
+
+    <!-- Settings Panel -->
+    <Settings {showSettings} onClose={closeSettings} {settings} />
 </main>
 
 <style>
@@ -108,5 +165,19 @@
     .widgets {
         display: flex;
         gap: 6rem;
+    }
+
+    .settings-btn {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        padding: 1rem 1.5rem;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        z-index: 100;
+    }
+
+    .settings-btn:hover {
+        opacity: 1;
     }
 </style>

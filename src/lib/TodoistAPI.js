@@ -174,15 +174,16 @@ class TodoistAPI {
             .filter((item) => !item.checked && !item.is_deleted)
             .map((item) => {
                 let dueDate = null
+                let hasTime = false
 
                 if (item.due) {
-                    const dueDateStr = item.due.date
-
                     // Check if it's date-only (YYYY-MM-DD) or includes time (YYYY-MM-DDTHH:MM:SS)
-                    if (dueDateStr.includes('T')) {
-                        dueDate = new Date(dueDateStr)
+                    if (item.due.date.includes('T')) {
+                        dueDate = new Date(item.due.date)
+                        hasTime = true
                     } else {
-                        dueDate = new Date(dueDateStr + 'T23:59:59')
+                        // offset to 23:59:59 if no time is provided
+                        dueDate = new Date(item.due.date + 'T23:59:59')
                     }
                 }
 
@@ -190,16 +191,17 @@ class TodoistAPI {
                     ...item,
                     project_name: this.getProjectName(item.project_id),
                     label_names: this.getLabelNames(item.labels),
-                    due_date: dueDate,
+                    offset_due_date: dueDate,
+                    has_time: hasTime,
                 }
             })
             .sort((a, b) => {
                 // Sort by: due date, then no date, then child order
-                if (a.due_date && b.due_date) {
-                    return a.due_date - b.due_date
+                if (a.offset_due_date && b.offset_due_date) {
+                    return a.offset_due_date - b.offset_due_date
                 }
-                if (a.due_date && !b.due_date) return -1
-                if (!a.due_date && b.due_date) return 1
+                if (a.offset_due_date && !b.offset_due_date) return -1
+                if (!a.offset_due_date && b.offset_due_date) return 1
                 return a.child_order - b.child_order
             })
     }

@@ -2,10 +2,8 @@
     import { onMount } from 'svelte'
     import TodoistAPI from './TodoistAPI.js'
 
-    // Props
     let { token } = $props()
 
-    // State
     let tasks = $state([])
     let loading = $state(true)
     let error = $state('')
@@ -18,13 +16,8 @@
             return
         }
 
-        try {
-            api = new TodoistAPI(token)
-            await loadTasks()
-        } catch (err) {
-            error = `Failed to load tasks: ${err.message}`
-            loading = false
-        }
+        api = new TodoistAPI(token)
+        await loadTasks()
     })
 
     async function loadTasks() {
@@ -36,7 +29,7 @@
             await api.sync()
             tasks = api.getTasks()
         } catch (err) {
-            error = `Failed to sync tasks: ${err.message}`
+            error = `failed to sync tasks: ${err.message}`
         } finally {
             loading = false
         }
@@ -46,90 +39,109 @@
         if (!api) return
 
         try {
-            // Optimistic update - remove task immediately for better UX
             tasks = tasks.filter((task) => task.id !== taskId)
-
             await api.completeTask(taskId)
         } catch (err) {
-            error = `Failed to complete task: ${err.message}`
-            // Reload tasks if the completion failed
-            await loadTasks()
+            error = `failed to complete task: ${err.message}`
         }
     }
 
-    function formatDueDate(dueString) {
-        if (!dueString) return ''
+    function formatDueDate(date, hasTime) {
+        if (!date) return ''
 
-        const due = new Date(dueString)
-        const today = new Date()
-        const daysDiff = Math.floor(
-            (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        const now = new Date()
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        const dueDate = new Date(date)
+        const dueDateOnly = new Date(
+            dueDate.getFullYear(),
+            dueDate.getMonth(),
+            dueDate.getDate()
         )
 
-        if (daysDiff < 0) return 'overdue'
-        if (daysDiff === 0) return 'today'
-        if (daysDiff === 1) return 'tmrw'
+        // Calculate difference in days
+        const diffTime = dueDateOnly.getTime() - today.getTime()
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
-        return due
-            .toLocaleDateString('en-US', {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-            })
-            .toLowerCase()
-    }
+        let dateString = ''
 
-    function getDueDateClass(dueString) {
-        if (!dueString) return ''
+        if (diffDays === -1) {
+            dateString = 'yesterday'
+        } else if (diffDays === 0) {
+            dateString = 'today'
+        } else if (diffDays === 1) {
+            dateString = 'tmrw'
+        } else if (diffDays > 1 && diffDays < 7) {
+            dateString = dueDate
+                .toLocaleDateString('en-US', {
+                    weekday: 'short',
+                })
+                .toLowerCase()
+        } else {
+            dateString = dueDate
+                .toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                })
+                .toLowerCase()
+        }
 
-        const due = new Date(dueString)
-        const today = new Date()
-        const daysDiff = Math.floor(
-            (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-        )
+        if (hasTime) {
+            const timeString = dueDate
+                .toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true,
+                })
+                .toLowerCase()
+            dateString += ` ${timeString}`
+        }
 
-        if (daysDiff < 0) return 'overdue'
-        if (daysDiff === 0) return 'today'
-        return ''
+        return dateString
     }
 </script>
 
 <div class="todoist">
     <div class="widget-header">
-        {tasks.length}
-        {tasks.length === 1 ? 'task' : 'tasks'}
-        <button onclick={loadTasks} disabled={loading} class="refresh">
-            {loading ? 'loading...' : 'refresh'}
-        </button>
+        {#if loading}
+            loading...
+        {:else if error}
+            error: {error}
+        {:else}
+            <a
+                href="https://todoist.com/app"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                {tasks.length}
+                {tasks.length === 1 ? 'task' : 'tasks'}
+            </a>
+            <button onclick={loadTasks} disabled={loading} class="refresh">
+                refresh
+            </button>
+        {/if}
     </div>
     <br />
-    {#if tasks.length === 0}
-        <div class="empty-state">
-            <p>no tasks left! :)</p>
-        </div>
-    {:else}
-        <div class="tasks-list">
-            {#each tasks as task}
-                <div class="task">
-                    <button
-                        onclick={() => completeTask(task.id)}
-                        class="checkbox"
-                    >
-                        [ ]
-                    </button>
-                    <span class="task-title">{task.content}</span>
-                    {#if task.due}
-                        <span class="task-due {getDueDateClass(task.due.date)}">
-                            {formatDueDate(task.due_date)}
-                        </span>
-                    {/if}
-                </div>
-            {/each}
-        </div>
-    {/if}
+    <div class="tasks-list">
+        {#each tasks as task}
+            <div class="task">
+                <button onclick={() => completeTask(task.id)} class="checkbox">
+                    [ ]
+                </button>
+                <span class="task-title">{task.content}</span>
+                {#if task.due}
+                    <span class="task-due">
+                        {formatDueDate(task.offset_due_date, task.has_time)}
+                    </span>
+                {/if}
+            </div>
+        {/each}
+    </div>
 </div>
 
 <style>
+    .checkbox {
+        color: var(--txt-3);
+    }
     .task-due {
         color: var(--txt-3);
     }
