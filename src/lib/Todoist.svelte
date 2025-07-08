@@ -94,22 +94,16 @@
     }
 </script>
 
-<div class="todoist-widget">
+<div class="todoist">
     <div class="widget-header">
-        <button onclick={loadTasks} disabled={loading} class="refresh-btn">
-            {loading ? '⟳' : '↻'}
+        {tasks.length}
+        {tasks.length === 1 ? 'task' : 'tasks'}
+        <button onclick={loadTasks} disabled={loading} class="refresh">
+            {loading ? 'loading...' : 'refresh'}
         </button>
     </div>
-
-    {#if error}
-        <div class="error">
-            {error}
-        </div>
-    {/if}
-
-    {#if loading}
-        <div class="loading">Loading tasks...</div>
-    {:else if tasks.length === 0}
+    <br />
+    {#if tasks.length === 0}
         <div class="empty-state">
             <p>no tasks left! :)</p>
         </div>
@@ -137,6 +131,9 @@
 
 <style>
     .task-due {
+        color: var(--txt-3);
+    }
+    .refresh {
         color: var(--txt-3);
     }
 </style>

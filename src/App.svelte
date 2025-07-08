@@ -1,7 +1,8 @@
 <script>
     import { onMount, onDestroy } from 'svelte'
-    import TodoistWidget from './lib/TodoistWidget.svelte'
-    import WeatherWidget from './lib/WeatherWidget.svelte'
+    import Todoist from './lib/Todoist.svelte'
+    import Weather from './lib/Weather.svelte'
+    import Links from './lib/Links.svelte'
 
     // Get API token from environment variables
     const apiToken = import.meta.env.VITE_TODOIST_API_TOKEN
@@ -75,13 +76,16 @@
     <br />
     <br />
     <div class="widgets">
-        <WeatherWidget {latitude} {longitude} />
+        <Weather {latitude} {longitude} />
         {#if apiToken}
-            <TodoistWidget token={apiToken} />
+            <Todoist token={apiToken} />
         {:else}
             <p>Please add your Todoist API token to the .env file</p>
         {/if}
     </div>
+    <br />
+    <br />
+    <Links />
 </main>
 
 <style>
@@ -103,6 +107,6 @@
     }
     .widgets {
         display: flex;
-        gap: 4rem;
+        gap: 6rem;
     }
 </style>

@@ -34,7 +34,7 @@
     })
 </script>
 
-<div class="weather-widget">
+<div class="weather-container">
     {#if isLoading}{:else if error}
         <p class="error">error: {error}</p>
         <button onclick={loadWeatherData}>retry</button>
@@ -105,11 +105,11 @@
     }
     .stats {
         display: flex;
-        gap: 2rem;
+        gap: 1.5rem;
     }
     .forecast {
         display: flex;
-        gap: 2rem;
+        gap: 1.5rem;
     }
     .forecast-time {
         text-align: end;
