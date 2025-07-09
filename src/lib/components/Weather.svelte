@@ -26,6 +26,12 @@
     })
 
     async function loadWeather() {
+        if (settings.latitude === null || settings.longitude === null) {
+            error = 'no latitude or longitude'
+            loading = false
+            return
+        }
+
         try {
             loading = true
             error = ''
@@ -39,7 +45,8 @@
             current = data.current
             forecast = data.forecast
         } catch (err) {
-            error = err.message
+            error = 'failed to load weather'
+            console.error(err)
         } finally {
             loading = false
         }

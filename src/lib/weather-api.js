@@ -50,10 +50,6 @@ class WeatherAPI {
         tempUnit = 'fahrenheit',
         speedUnit = 'mph'
     ) {
-        if (latitude === null || longitude === null) {
-            throw new Error('no latitude or longitude provided')
-        }
-
         const params = new URLSearchParams({
             latitude: latitude.toString(),
             longitude: longitude.toString(),
@@ -67,12 +63,11 @@ class WeatherAPI {
         })
 
         const response = await fetch(`${this.baseUrl}?${params}`)
-
         if (!response.ok) {
-            throw new Error(`open-meteo fetch failed: ${response.status}`)
+            throw new Error(`HTTP ${response.status} ${response.statusText}`)
         }
-
-        return await response.json()
+        const data = await response.json()
+        return data
     }
 
     /**

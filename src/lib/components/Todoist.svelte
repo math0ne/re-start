@@ -25,7 +25,7 @@
             api = null
             tasks = []
             loading = false
-            error = 'no todoist api token provided'
+            error = 'no todoist api token'
             return
         }
         api = new TodoistAPI(token)
@@ -43,7 +43,8 @@
             await api.sync()
             tasks = api.getTasks()
         } catch (err) {
-            error = `failed to sync tasks: ${err.message}`
+            error = `failed to sync tasks`
+            console.error(err)
         } finally {
             loading = false
         }
@@ -54,7 +55,8 @@
             tasks = tasks.filter((task) => task.id !== taskId)
             await api.completeTask(taskId)
         } catch (err) {
-            error = `failed to complete task: ${err.message}`
+            error = `failed to complete task`
+            console.error(err)
         }
     }
 

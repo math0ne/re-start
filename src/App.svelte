@@ -6,7 +6,9 @@
     import Settings from './lib/components/Settings.svelte'
 
     let showSettings = $state(false)
-    let weatherComponent
+
+    let loadTime = $state(0)
+    let transferSize = $state(0)
 
     let currentHrs = $state('')
     let currentMin = $state('')
@@ -51,13 +53,17 @@
 
     function closeSettings() {
         showSettings = false
-        // if (weatherComponent) {
-        //     weatherComponent.refreshWeather()
-        // }
     }
 
     onMount(() => {
         startClock()
+
+        const perfObserver = new PerformanceObserver((list) => {
+            const entry = list.getEntries()[0].toJSON()
+            loadTime = entry.duration
+        })
+
+        perfObserver.observe({ type: 'navigation', buffered: true })
     })
 
     onDestroy(() => {
@@ -82,6 +88,9 @@
     <br />
     <br />
     <Links />
+    <br />
+    <br />
+    <div class="load-time">load: {loadTime} ms</div>
 
     <button
         class="settings-btn"
@@ -115,7 +124,9 @@
         display: flex;
         gap: 6rem;
     }
-
+    .load-time {
+        color: var(--txt-3);
+    }
     .settings-btn {
         position: fixed;
         bottom: 0;
@@ -126,7 +137,6 @@
         z-index: 100;
         color: var(--txt-3);
     }
-
     .settings-btn:hover {
         opacity: 1;
     }
