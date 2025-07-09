@@ -1,10 +1,14 @@
 <script>
-    let { links = [], linksPerColumn = 4 } = $props()
+    import { settings } from '../settings-store.svelte.js'
 
     const columns = $derived.by(() => {
         const result = []
-        for (let i = 0; i < links.length; i += linksPerColumn) {
-            result.push(links.slice(i, i + linksPerColumn))
+        for (
+            let i = 0;
+            i < settings.links.length;
+            i += settings.linksPerColumn
+        ) {
+            result.push(settings.links.slice(i, i + settings.linksPerColumn))
         }
         return result
     })

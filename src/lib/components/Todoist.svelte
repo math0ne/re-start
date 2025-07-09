@@ -1,28 +1,42 @@
 <script>
-    import { onMount } from 'svelte'
-    import TodoistAPI from './TodoistAPI.js'
+    import { onMount, untrack } from 'svelte'
+    import TodoistAPI from '../todoist-api.js'
+    import { settings } from '../settings-store.svelte.js'
 
-    let { token } = $props()
-
+    let api = null
     let tasks = $state([])
     let loading = $state(true)
     let error = $state('')
-    let api = null
+    let initialLoad = $state(true)
 
-    onMount(async () => {
-        if (!token) {
-            error = 'No API token provided'
-            loading = false
+    $effect(() => {
+        const token = settings.todoistApiToken
+
+        if (untrack(() => initialLoad)) {
+            initialLoad = false
             return
         }
 
-        api = new TodoistAPI(token)
-        await loadTasks()
+        initializeAPI(token, true)
     })
 
-    async function loadTasks() {
-        if (!api) return
+    async function initializeAPI(token, clearLocalData = false) {
+        if (!token) {
+            api = null
+            tasks = []
+            loading = false
+            error = 'no todoist api token provided'
+            return
+        }
+        api = new TodoistAPI(token)
+        if (clearLocalData) {
+            api.clearLocalData()
+            tasks = []
+        }
+        await loadTasks()
+    }
 
+    async function loadTasks() {
         try {
             loading = true
             error = ''
@@ -36,8 +50,6 @@
     }
 
     async function completeTask(taskId) {
-        if (!api) return
-
         try {
             tasks = tasks.filter((task) => task.id !== taskId)
             await api.completeTask(taskId)
@@ -98,6 +110,10 @@
 
         return dateString
     }
+
+    onMount(() => {
+        initializeAPI(settings.todoistApiToken)
+    })
 </script>
 
 <div class="todoist">
@@ -105,7 +121,7 @@
         {#if loading}
             loading...
         {:else if error}
-            error: {error}
+            {error}
         {:else}
             <a
                 href="https://todoist.com/app"
@@ -115,11 +131,12 @@
                 {tasks.length}
                 {tasks.length === 1 ? 'task' : 'tasks'}
             </a>
-            <button onclick={loadTasks} disabled={loading} class="refresh">
-                refresh
-            </button>
         {/if}
+        <button onclick={loadTasks} disabled={loading} class="refresh">
+            refresh
+        </button>
     </div>
+
     <br />
     <div class="tasks-list">
         {#each tasks as task}

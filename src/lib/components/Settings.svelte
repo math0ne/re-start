@@ -1,7 +1,8 @@
 <script>
     import { fly, fade } from 'svelte/transition'
+    import { settings, saveSettings } from '../settings-store.svelte.js'
 
-    let { showSettings = false, onClose = () => {}, settings = {} } = $props()
+    let { showSettings = false, closeSettings } = $props()
 
     function addLink() {
         settings.links = [...settings.links, { title: '', url: '' }]
@@ -12,7 +13,8 @@
     }
 
     function handleClose() {
-        onClose()
+        saveSettings(settings)
+        closeSettings()
     }
 
     function handleKeydown(event) {
@@ -64,7 +66,6 @@
                     id="longitude"
                     type="number"
                     bind:value={settings.longitude}
-                    placeholder="e.g. -74.0060"
                     step="any"
                 />
             </div>
@@ -74,7 +75,7 @@
                     <label class="radio-label">
                         <input
                             type="radio"
-                            bind:group={settings.tempFormat}
+                            bind:group={settings.tempUnit}
                             value="fahrenheit"
                         />
                         fahrenheit
@@ -82,7 +83,7 @@
                     <label class="radio-label">
                         <input
                             type="radio"
-                            bind:group={settings.tempFormat}
+                            bind:group={settings.tempUnit}
                             value="celsius"
                         />
                         celsius
@@ -95,7 +96,7 @@
                     <label class="radio-label">
                         <input
                             type="radio"
-                            bind:group={settings.speedFormat}
+                            bind:group={settings.speedUnit}
                             value="mph"
                         />
                         mph
@@ -103,10 +104,10 @@
                     <label class="radio-label">
                         <input
                             type="radio"
-                            bind:group={settings.speedFormat}
+                            bind:group={settings.speedUnit}
                             value="kmh"
                         />
-                        kph
+                        kmh
                     </label>
                 </div>
             </div>

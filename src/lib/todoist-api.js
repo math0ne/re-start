@@ -6,8 +6,9 @@ class TodoistAPI {
         this.token = token
         this.baseUrl = 'https://api.todoist.com/api/v1'
         this.syncTokenKey = 'todoist_sync_token'
-        this.syncToken = localStorage.getItem(this.syncTokenKey) || '*'
         this.dataKey = 'todoist_data'
+
+        this.syncToken = localStorage.getItem(this.syncTokenKey) || '*'
         this.data = JSON.parse(localStorage.getItem(this.dataKey) || '{}')
     }
 
@@ -37,10 +38,8 @@ class TodoistAPI {
 
             const data = await response.json()
 
-            // Update local data
             this.updateLocalData(data)
 
-            // Store sync token for next request
             this.syncToken = data.sync_token
             localStorage.setItem(this.syncTokenKey, this.syncToken)
 
@@ -48,9 +47,8 @@ class TodoistAPI {
 
             return data
         } catch (error) {
-            console.error('sync error:', error)
+            console.error('todoist sync error:', error)
 
-            // Retry with full sync once
             if (!isRetry && this.syncToken !== '*') {
                 console.log('retrying with full sync...')
                 this.syncToken = '*'
@@ -58,7 +56,6 @@ class TodoistAPI {
                 return this.sync(resourceTypes, true)
             }
 
-            // If we already tried or this was a full sync, give up
             throw error
         }
     }
@@ -68,97 +65,41 @@ class TodoistAPI {
      */
     updateLocalData(syncData) {
         if (syncData.full_sync) {
-            // Full sync - replace all data
             this.data = {
                 items: syncData.items || [],
                 labels: syncData.labels || [],
                 projects: syncData.projects || [],
             }
         } else {
-            // Incremental sync - merge updates
-            if (syncData.items) {
-                this.mergeItems(syncData.items)
-            }
-            if (syncData.labels) {
-                this.mergeLabels(syncData.labels)
-            }
-            if (syncData.projects) {
-                this.mergeProjects(syncData.projects)
-            }
+            // Merge incremental updates
+            this.mergeData('items', syncData.items)
+            this.mergeData('labels', syncData.labels)
+            this.mergeData('projects', syncData.projects)
         }
 
         localStorage.setItem(this.dataKey, JSON.stringify(this.data))
     }
 
     /**
-     * Merge updated items into local data
+     * Generic merge function for all data types
      */
-    mergeItems(newItems) {
-        if (!this.data.items) this.data.items = []
+    mergeData(type, newData) {
+        if (!newData) return
+        if (!this.data[type]) this.data[type] = []
 
-        newItems.forEach((newItem) => {
+        newData.forEach((newItem) => {
             if (newItem.is_deleted) {
-                // Remove deleted
-                this.data.items = this.data.items.filter(
+                this.data[type] = this.data[type].filter(
                     (item) => item.id !== newItem.id
                 )
             } else {
-                // Update or add item
-                const existingIndex = this.data.items.findIndex(
+                const existingIndex = this.data[type].findIndex(
                     (item) => item.id === newItem.id
                 )
                 if (existingIndex >= 0) {
-                    this.data.items[existingIndex] = newItem
+                    this.data[type][existingIndex] = newItem
                 } else {
-                    this.data.items.push(newItem)
-                }
-            }
-        })
-    }
-
-    /**
-     * Merge updated labels into local data
-     */
-    mergeLabels(newLabels) {
-        if (!this.data.labels) this.data.labels = []
-
-        newLabels.forEach((newLabel) => {
-            if (newLabel.is_deleted) {
-                this.data.labels = this.data.labels.filter(
-                    (label) => label.id !== newLabel.id
-                )
-            } else {
-                const existingIndex = this.data.labels.findIndex(
-                    (label) => label.id === newLabel.id
-                )
-                if (existingIndex >= 0) {
-                    this.data.labels[existingIndex] = newLabel
-                } else {
-                    this.data.labels.push(newLabel)
-                }
-            }
-        })
-    }
-
-    /**
-     * Merge updated projects into local data
-     */
-    mergeProjects(newProjects) {
-        if (!this.data.projects) this.data.projects = []
-
-        newProjects.forEach((newProject) => {
-            if (newProject.is_deleted) {
-                this.data.projects = this.data.projects.filter(
-                    (project) => project.id !== newProject.id
-                )
-            } else {
-                const existingIndex = this.data.projects.findIndex(
-                    (project) => project.id === newProject.id
-                )
-                if (existingIndex >= 0) {
-                    this.data.projects[existingIndex] = newProject
-                } else {
-                    this.data.projects.push(newProject)
+                    this.data[type].push(newItem)
                 }
             }
         })
@@ -177,7 +118,6 @@ class TodoistAPI {
                 let hasTime = false
 
                 if (item.due) {
-                    // Check if it's date-only (YYYY-MM-DD) or includes time (YYYY-MM-DDTHH:MM:SS)
                     if (item.due.date.includes('T')) {
                         dueDate = new Date(item.due.date)
                         hasTime = true
@@ -210,20 +150,17 @@ class TodoistAPI {
      * Get project name by ID
      */
     getProjectName(projectId) {
-        if (!this.data.projects) return ''
-        const project = this.data.projects.find((p) => p.id === projectId)
-        return project ? project.name : ''
+        return this.data.projects?.find((p) => p.id === projectId)?.name || ''
     }
 
     /**
      * Get label names by label IDs
      */
     getLabelNames(labelIds) {
-        if (!this.data.labels || !labelIds) return []
+        if (!labelIds || !this.data.labels) return []
         return labelIds
-            .map((id) => this.data.labels.find((l) => l.id === id))
+            .map((id) => this.data.labels.find((l) => l.id === id)?.name)
             .filter(Boolean)
-            .map((label) => label.name)
     }
 
     /**
@@ -267,9 +204,7 @@ class TodoistAPI {
 
             const data = await response.json()
 
-            // Update local data with any changes
             if (data.sync_status) {
-                // Command was successful, perform an incremental sync to update local data
                 await this.sync()
             }
 
@@ -281,7 +216,7 @@ class TodoistAPI {
     }
 
     /**
-     * Clear local storage (for testing or reset)
+     * Clear local storage when the API token changes
      */
     clearLocalData() {
         localStorage.removeItem(this.syncTokenKey)

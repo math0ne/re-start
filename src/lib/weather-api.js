@@ -1,37 +1,33 @@
-import descriptions from './descriptions.json'
+import descriptions from '../assets/descriptions.json'
 
 /**
  * OpenMeteo Weather API client with data processing utilities
  */
 class WeatherAPI {
-    constructor(
-        latitude,
-        longitude,
-        tempFormat = 'fahrenheit',
-        speedFormat = 'mph'
-    ) {
+    constructor() {
         this.baseUrl = 'https://api.open-meteo.com/v1/forecast'
-        this.latitude = latitude
-        this.longitude = longitude
-        this.temperatureUnit = tempFormat
-        this.windSpeedUnit = speedFormat
         this.cacheKey = `weather_data`
-        this.cacheExpiry = 15 * 60 * 1000 // 15 minutes in milliseconds
+        this.cacheExpiry = 15 * 60 * 1000
     }
 
     /**
      * Get processed weather data including current conditions and hourly forecasts
      */
-    async getWeather() {
+    async getWeather(latitude, longitude, tempUnit, speedUnit) {
         let rawData = this._getCachedWeather()
         if (!rawData) {
-            rawData = await this._fetchWeatherData()
+            rawData = await this._fetchWeatherData(
+                latitude,
+                longitude,
+                tempUnit,
+                speedUnit
+            )
             this._cacheWeather(rawData)
         }
 
         return {
             current: this._processCurrentWeather(rawData.current),
-            hourlyForecasts: this._processHourlyForecast(
+            forecast: this._processHourlyForecast(
                 rawData.hourly,
                 rawData.current.time
             ),
@@ -39,19 +35,35 @@ class WeatherAPI {
     }
 
     /**
+     * Clear the weather cache
+     */
+    clearCache() {
+        localStorage.removeItem(this.cacheKey)
+    }
+
+    /**
      * Private method to fetch raw weather data from API
      */
-    async _fetchWeatherData() {
+    async _fetchWeatherData(
+        latitude,
+        longitude,
+        tempUnit = 'fahrenheit',
+        speedUnit = 'mph'
+    ) {
+        if (latitude === null || longitude === null) {
+            throw new Error('no latitude or longitude provided')
+        }
+
         const params = new URLSearchParams({
-            latitude: this.latitude.toString(),
-            longitude: this.longitude.toString(),
+            latitude: latitude.toString(),
+            longitude: longitude.toString(),
             hourly: 'temperature_2m,weather_code,is_day',
             current:
                 'temperature_2m,weather_code,relative_humidity_2m,precipitation_probability,wind_speed_10m,apparent_temperature,is_day',
             timezone: 'auto',
             forecast_hours: '24',
-            temperature_unit: this.temperatureUnit,
-            wind_speed_unit: this.windSpeedUnit,
+            temperature_unit: tempUnit,
+            wind_speed_unit: speedUnit,
         })
 
         const response = await fetch(`${this.baseUrl}?${params}`)
