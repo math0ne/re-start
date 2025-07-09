@@ -173,6 +173,7 @@ class WeatherAPI {
             localStorage.removeItem(this.cacheKey)
             return null
         } catch (error) {
+            console.error('failed to get cached weather data:', error)
             localStorage.removeItem(this.cacheKey)
             return null
         }
@@ -189,7 +190,7 @@ class WeatherAPI {
             }
             localStorage.setItem(this.cacheKey, JSON.stringify(cacheData))
         } catch (error) {
-            console.warn('Failed to cache weather data:', error)
+            console.error('failed to cache weather data:', error)
         }
     }
 }

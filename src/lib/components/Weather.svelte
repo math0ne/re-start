@@ -22,13 +22,10 @@
             return
         }
 
-        if (lat && lon && tempUnit && speedUnit) {
-            refreshWeather()
-        }
+        refreshWeather()
     })
 
     async function loadWeather() {
-        console.log('loading weather')
         try {
             loading = true
             error = ''
@@ -49,7 +46,6 @@
     }
 
     export function refreshWeather() {
-        console.log('refreshing weather')
         weatherAPI.clearCache()
         loadWeather()
     }
@@ -63,10 +59,7 @@
     {#if loading}
         <div>loading...</div>
     {:else if error}
-        <div class="error">
-            {error}
-            <button onclick={loadWeather}>refresh</button>
-        </div>
+        <div class="error">{error}</div>
     {:else if current}
         <div class="temp">{current.temperature_2m}°</div>
         <div class="weather">{current.description}</div>
@@ -148,9 +141,6 @@
         color: var(--txt-1);
     }
     .forecast-weather {
-        color: var(--txt-3);
-    }
-    button {
         color: var(--txt-3);
     }
 </style>

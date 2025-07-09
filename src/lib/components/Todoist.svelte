@@ -156,13 +156,7 @@
 </div>
 
 <style>
-    .checkbox {
-        color: var(--txt-3);
-    }
     .task-due {
-        color: var(--txt-3);
-    }
-    .refresh {
         color: var(--txt-3);
     }
 </style>

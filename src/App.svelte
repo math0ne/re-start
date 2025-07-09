@@ -124,6 +124,7 @@
         opacity: 0;
         transition: opacity 0.2s ease;
         z-index: 100;
+        color: var(--txt-3);
     }
 
     .settings-btn:hover {

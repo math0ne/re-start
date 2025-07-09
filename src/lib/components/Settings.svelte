@@ -57,7 +57,7 @@
                     id="latitude"
                     type="number"
                     bind:value={settings.latitude}
-                    step="any"
+                    step="0.01"
                 />
             </div>
             <div class="group">
@@ -66,7 +66,7 @@
                     id="longitude"
                     type="number"
                     bind:value={settings.longitude}
-                    step="any"
+                    step="0.01"
                 />
             </div>
             <div class="group">
@@ -123,12 +123,11 @@
             <div class="group">
                 <div class="links-header">
                     <div class="setting-label">links</div>
-                    <button class="add-btn" onclick={addLink}>+ add</button>
+                    <button class="add-btn" onclick={addLink}>add link</button>
                 </div>
-
                 <div class="links-list">
                     {#each settings.links as link, index}
-                        <div class="link-item">
+                        <div class="link">
                             <input
                                 type="text"
                                 bind:value={link.title}
@@ -165,7 +164,6 @@
         background: rgba(0, 0, 0, 0.3);
         z-index: 999;
     }
-
     .settings {
         position: fixed;
         top: 0;
@@ -178,9 +176,8 @@
         display: flex;
         flex-direction: column;
     }
-
     .header {
-        padding: 1rem 1.5rem;
+        padding: 0.5rem 1.5rem;
         border-bottom: 1px solid var(--bg-2);
         display: flex;
         justify-content: space-between;
@@ -190,130 +187,50 @@
             margin: 0;
         }
     }
-
     .close-btn {
         font-size: 1.5rem;
-        color: var(--txt-3);
         padding: 0.5rem;
         line-height: 1;
-
-        &:hover {
-            color: var(--txt-1);
-        }
     }
-
     .content {
         flex: 1;
         padding: 1.5rem;
         overflow-y: auto;
     }
-
     .group {
         margin-bottom: 1.5rem;
     }
-
-    .group label,
+    .group > label,
     .setting-label {
         display: block;
         margin-bottom: 0.5rem;
-        color: var(--txt-2);
-        font-size: 0.9rem;
     }
-
     .group input[type='text'],
     .group input[type='password'],
     .group input[type='number'],
     .group input[type='url'] {
         width: 100%;
-        padding: 0.75rem;
-        background: var(--bg-1);
+        padding: 0.5rem;
+        background: var(--bg-2);
         border: 1px solid var(--bg-3);
-        border-radius: 0;
-        color: var(--txt-2);
-        font-family: inherit;
-        font-size: 0.9rem;
     }
-
-    .group input:focus {
-        outline: none;
-        border-color: var(--txt-3);
-    }
-
-    .radio-group {
-        display: flex;
-        gap: 1rem;
-    }
-
-    .radio-label {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        cursor: pointer;
-        font-size: 0.9rem;
-    }
-
-    .radio-label input[type='radio'] {
-        margin: 0;
-    }
-
     .links-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
     }
-
     .add-btn {
-        background: var(--bg-3);
-        border: 1px solid var(--bg-4);
-        color: var(--txt-2);
-        padding: 0.5rem 1rem;
-        cursor: pointer;
-        font-size: 0.8rem;
+        height: 1.5rem;
     }
-
-    .add-btn:hover {
-        background: var(--bg-4);
-    }
-
-    .links-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .link-item {
+    .link {
         display: flex;
         gap: 0.5rem;
-        align-items: center;
+        margin-bottom: 0.5rem;
     }
-
-    .link-input {
-        flex: 1;
-        padding: 0.5rem;
-        background: var(--bg-1);
-        border: 1px solid var(--bg-3);
-        color: var(--txt-2);
-        font-family: inherit;
-        font-size: 0.8rem;
+    .link .link-input:nth-child(1) {
+        width: 12rem;
     }
-
-    .link-input:focus {
-        outline: none;
-        border-color: var(--txt-3);
-    }
-
     .remove-btn {
-        background: none;
-        border: none;
-        color: var(--txt-3);
-        cursor: pointer;
-        padding: 0.5rem;
-        font-size: 1rem;
-        line-height: 1;
-    }
-
-    .remove-btn:hover {
-        color: var(--txt-1);
+        font-size: 1.5rem;
+        font-weight: 300;
     }
 </style>
