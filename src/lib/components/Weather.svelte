@@ -62,14 +62,14 @@
     })
 </script>
 
-<div class="weather-container">
+<div class="weather">
     {#if loading}
         <div>loading...</div>
     {:else if error}
         <div class="error">{error}</div>
     {:else if current}
         <div class="temp">{current.temperature_2m}°</div>
-        <div class="weather">{current.description}</div>
+        <div class="description">{current.description}</div>
         <br />
         <div class="stats">
             <div class="col">
@@ -125,7 +125,7 @@
         color: var(--txt-1);
         line-height: normal;
     }
-    .weather {
+    .description {
         font-size: 1.25rem;
         color: var(--txt-3);
     }
