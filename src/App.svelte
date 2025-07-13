@@ -8,7 +8,6 @@
     let showSettings = $state(false)
 
     let loadTime = $state(0)
-    let transferSize = $state(0)
 
     let currentHrs = $state('')
     let currentMin = $state('')
@@ -16,6 +15,9 @@
     let currentAmPm = $state('')
     let currentDate = $state('')
     let clockInterval = null
+
+    let weatherComponent
+    let todoistComponent
 
     function updateTime() {
         const now = new Date()
@@ -55,6 +57,17 @@
         showSettings = false
     }
 
+    function handleVisibilityChange() {
+        if (document.visibilityState === 'visible') {
+            if (weatherComponent) {
+                weatherComponent.loadWeather()
+            }
+            if (todoistComponent) {
+                todoistComponent.loadTasks()
+            }
+        }
+    }
+
     onMount(() => {
         startClock()
 
@@ -64,6 +77,15 @@
         })
 
         perfObserver.observe({ type: 'navigation', buffered: true })
+
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+
+        return () => {
+            document.removeEventListener(
+                'visibilitychange',
+                handleVisibilityChange
+            )
+        }
     })
 
     onDestroy(() => {
@@ -82,8 +104,8 @@
     <br />
     <br />
     <div class="widgets">
-        <Weather />
-        <Todoist />
+        <Weather bind:this={weatherComponent} />
+        <Todoist bind:this={todoistComponent} />
     </div>
     <br />
     <br />

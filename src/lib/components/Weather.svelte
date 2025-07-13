@@ -25,7 +25,7 @@
         refreshWeather()
     })
 
-    async function loadWeather() {
+    export async function loadWeather() {
         if (settings.latitude === null || settings.longitude === null) {
             error = 'no latitude or longitude'
             loading = false

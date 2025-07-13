@@ -36,7 +36,7 @@
         await loadTasks()
     }
 
-    async function loadTasks() {
+    export async function loadTasks() {
         try {
             loading = true
             error = ''
