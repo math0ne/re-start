@@ -8,6 +8,9 @@
     let showSettings = $state(false)
 
     let loadTime = $state(0)
+    let latency = $state(null)
+    let viewportSize = $state('')
+    let fps = $state(0)
 
     let currentHrs = $state('')
     let currentMin = $state('')
@@ -18,6 +21,23 @@
 
     let weatherComponent
     let todoistComponent
+
+    // FPS tracking variables
+    let frameCount = 0
+    let lastTime = 0
+
+    function updateFPS() {
+        frameCount++
+        const currentTime = performance.now()
+
+        if (currentTime >= lastTime + 1000) {
+            fps = frameCount
+            frameCount = 0
+            lastTime = currentTime
+        }
+
+        requestAnimationFrame(updateFPS)
+    }
 
     function updateTime() {
         const now = new Date()
@@ -68,14 +88,37 @@
         }
     }
 
+    async function measurePing() {
+        const start = performance.now()
+
+        try {
+            await fetch('https://www.google.com/generate_204', {
+                method: 'GET',
+                mode: 'no-cors',
+                cache: 'no-cache',
+            })
+            latency = Math.round(performance.now() - start)
+        } catch (error) {
+            latency = null
+        }
+    }
+
+    function updateViewportSize() {
+        viewportSize = `${window.innerWidth} x ${window.innerHeight}`
+    }
+
     onMount(() => {
         startClock()
+        measurePing()
+        updateViewportSize()
+        updateFPS()
+
+        window.addEventListener('resize', updateViewportSize)
 
         const perfObserver = new PerformanceObserver((list) => {
             const entry = list.getEntries()[0].toJSON()
             loadTime = entry.duration
         })
-
         perfObserver.observe({ type: 'navigation', buffered: true })
 
         document.addEventListener('visibilitychange', handleVisibilityChange)
@@ -92,6 +135,7 @@
         if (clockInterval) {
             clearInterval(clockInterval)
         }
+        window.removeEventListener('resize', updateViewportSize)
     })
 </script>
 
@@ -112,7 +156,9 @@
     <Links />
     <br />
     <br />
-    <div class="load-time">load: {loadTime} ms</div>
+    <div class="load-stats">
+        load: {loadTime} ms | ping: {latency || '?'} ms
+    </div>
 
     <button
         class="settings-btn"
@@ -123,11 +169,12 @@
     </button>
 
     <Settings {showSettings} {closeSettings} />
+    <div class="display-stats">{fps} fps | {viewportSize}</div>
 </main>
 
 <style>
     main {
-        margin: 2rem;
+        margin: 1.5rem;
     }
     .clock {
         margin: 0;
@@ -146,12 +193,16 @@
         display: flex;
         gap: 6rem;
     }
-    .load-time {
+    .load-stats {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        padding: 1rem 1.5rem;
         color: var(--txt-3);
     }
     .settings-btn {
         position: fixed;
-        bottom: 0;
+        top: 0;
         right: 0;
         padding: 1rem 1.5rem;
         opacity: 0;
@@ -161,5 +212,12 @@
     }
     .settings-btn:hover {
         opacity: 1;
+    }
+    .display-stats {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        padding: 1rem 1.5rem;
+        color: var(--txt-3);
     }
 </style>

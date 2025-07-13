@@ -24,6 +24,7 @@
                     rel="noopener noreferrer"
                     class="link"
                 >
+                    <span>></span>
                     {link.title}
                 </a>
                 <br />
@@ -37,5 +38,11 @@
         display: flex;
         gap: 3rem;
         flex-wrap: wrap;
+    }
+    span {
+        color: var(--txt-3);
+    }
+    .link:hover span {
+        color: var(--txt-2);
     }
 </style>
