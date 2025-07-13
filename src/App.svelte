@@ -10,6 +10,7 @@
     let loadTime = $state(0)
     let latency = $state(null)
     let viewportSize = $state('')
+    let fps = $state(0)
 
     let currentHrs = $state('')
     let currentMin = $state('')
@@ -17,6 +18,23 @@
     let currentAmPm = $state('')
     let currentDate = $state('')
     let clockInterval = null
+
+    // FPS tracking variables
+    let frameCount = 0
+    let lastTime = 0
+
+    function updateFPS() {
+        frameCount++
+        const currentTime = performance.now()
+
+        if (currentTime >= lastTime + 1000) {
+            fps = frameCount
+            frameCount = 0
+            lastTime = currentTime
+        }
+
+        requestAnimationFrame(updateFPS)
+    }
 
     function updateTime() {
         const now = new Date()
@@ -79,6 +97,7 @@
         startClock()
         measurePing()
         updateViewportSize()
+        updateFPS()
 
         window.addEventListener('resize', updateViewportSize)
 
@@ -114,7 +133,7 @@
     <Links />
     <br />
     <br />
-    <div class="load-time">
+    <div class="load-stats">
         load: {loadTime} ms | ping: {latency || '?'} ms
     </div>
 
@@ -127,7 +146,7 @@
     </button>
 
     <Settings {showSettings} {closeSettings} />
-    <div class="viewport-size">{viewportSize}</div>
+    <div class="display-stats">{fps} fps | {viewportSize}</div>
 </main>
 
 <style>
@@ -151,7 +170,7 @@
         display: flex;
         gap: 6rem;
     }
-    .load-time {
+    .load-stats {
         position: fixed;
         bottom: 0;
         left: 0;
@@ -171,7 +190,7 @@
     .settings-btn:hover {
         opacity: 1;
     }
-    .viewport-size {
+    .display-stats {
         position: fixed;
         bottom: 0;
         right: 0;
