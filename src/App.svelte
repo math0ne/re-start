@@ -22,9 +22,9 @@
     let weatherComponent
     let todoistComponent
 
-    // FPS tracking variables
     let frameCount = 0
     let lastTime = 0
+    let fpsAnimationId = null
 
     function updateFPS() {
         frameCount++
@@ -36,7 +36,23 @@
             lastTime = currentTime
         }
 
-        requestAnimationFrame(updateFPS)
+        fpsAnimationId = requestAnimationFrame(updateFPS)
+    }
+
+    function startFPS() {
+        if (!fpsAnimationId) {
+            frameCount = 0
+            lastTime = performance.now()
+            updateFPS()
+        }
+    }
+
+    function stopFPS() {
+        if (fpsAnimationId) {
+            cancelAnimationFrame(fpsAnimationId)
+            fpsAnimationId = null
+            fps = 0
+        }
     }
 
     function updateTime() {
@@ -85,6 +101,9 @@
             if (todoistComponent) {
                 todoistComponent.loadTasks()
             }
+            startFPS()
+        } else {
+            stopFPS()
         }
     }
 
@@ -111,9 +130,7 @@
         startClock()
         measurePing()
         updateViewportSize()
-        updateFPS()
-
-        window.addEventListener('resize', updateViewportSize)
+        startFPS()
 
         const perfObserver = new PerformanceObserver((list) => {
             const entry = list.getEntries()[0].toJSON()
@@ -122,20 +139,16 @@
         perfObserver.observe({ type: 'navigation', buffered: true })
 
         document.addEventListener('visibilitychange', handleVisibilityChange)
-
-        return () => {
-            document.removeEventListener(
-                'visibilitychange',
-                handleVisibilityChange
-            )
-        }
+        window.addEventListener('resize', updateViewportSize)
     })
 
     onDestroy(() => {
         if (clockInterval) {
             clearInterval(clockInterval)
         }
+        stopFPS()
         window.removeEventListener('resize', updateViewportSize)
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
     })
 </script>
 
