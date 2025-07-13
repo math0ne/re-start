@@ -134,7 +134,7 @@
 
         const perfObserver = new PerformanceObserver((list) => {
             const entry = list.getEntries()[0].toJSON()
-            loadTime = entry.duration
+            loadTime = Math.round(entry.duration)
         })
         perfObserver.observe({ type: 'navigation', buffered: true })
 
