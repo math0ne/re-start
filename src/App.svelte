@@ -8,7 +8,8 @@
     let showSettings = $state(false)
 
     let loadTime = $state(0)
-    let transferSize = $state(0)
+    let latency = $state(null)
+    let viewportSize = $state('')
 
     let currentHrs = $state('')
     let currentMin = $state('')
@@ -55,14 +56,36 @@
         showSettings = false
     }
 
-    onMount(() => {
+    async function measurePing() {
+        const start = performance.now()
+
+        try {
+            await fetch('https://www.google.com/generate_204', {
+                method: 'GET',
+                mode: 'no-cors',
+                cache: 'no-cache',
+            })
+            latency = Math.round(performance.now() - start)
+        } catch (error) {
+            latency = null
+        }
+    }
+
+    function updateViewportSize() {
+        viewportSize = `${window.innerWidth} x ${window.innerHeight}`
+    }
+
+    onMount(async () => {
         startClock()
+        measurePing()
+        updateViewportSize()
+
+        window.addEventListener('resize', updateViewportSize)
 
         const perfObserver = new PerformanceObserver((list) => {
             const entry = list.getEntries()[0].toJSON()
             loadTime = entry.duration
         })
-
         perfObserver.observe({ type: 'navigation', buffered: true })
     })
 
@@ -70,6 +93,7 @@
         if (clockInterval) {
             clearInterval(clockInterval)
         }
+        window.removeEventListener('resize', updateViewportSize)
     })
 </script>
 
@@ -90,7 +114,9 @@
     <Links />
     <br />
     <br />
-    <div class="load-time">load: {loadTime} ms</div>
+    <div class="load-time">
+        load: {loadTime} ms | ping: {latency || '?'} ms
+    </div>
 
     <button
         class="settings-btn"
@@ -101,11 +127,12 @@
     </button>
 
     <Settings {showSettings} {closeSettings} />
+    <div class="viewport-size">{viewportSize}</div>
 </main>
 
 <style>
     main {
-        margin: 2rem;
+        margin: 1.5rem;
     }
     .clock {
         margin: 0;
@@ -125,11 +152,15 @@
         gap: 6rem;
     }
     .load-time {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        padding: 1rem 1.5rem;
         color: var(--txt-3);
     }
     .settings-btn {
         position: fixed;
-        bottom: 0;
+        top: 0;
         right: 0;
         padding: 1rem 1.5rem;
         opacity: 0;
@@ -139,5 +170,12 @@
     }
     .settings-btn:hover {
         opacity: 1;
+    }
+    .viewport-size {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        padding: 1rem 1.5rem;
+        color: var(--txt-3);
     }
 </style>
