@@ -3,12 +3,12 @@
 
     const columns = $derived.by(() => {
         const result = []
-        for (
-            let i = 0;
-            i < settings.links.length;
-            i += settings.linksPerColumn
-        ) {
-            result.push(settings.links.slice(i, i + settings.linksPerColumn))
+        const linksPerColumn = Math.max(
+            1,
+            parseInt(settings.linksPerColumn) || 1
+        )
+        for (let i = 0; i < settings.links.length; i += linksPerColumn) {
+            result.push(settings.links.slice(i, i + linksPerColumn))
         }
         return result
     })
