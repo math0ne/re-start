@@ -4,11 +4,18 @@ a tui-style browser startpage, built with svelte.
 
 features:
 
-- todoist tasks integrationz
-- weather (from open-meteo)
-- customizable quick links
+- todoist tasks integration
+- weather (from open-meteo) with 5-day temperature graph
+- drag-and-drop customizable quick links
 - stats (load time, ping, fps, viewport size)
 - lightweight & performant (&lt;90kb including fonts, loads in &lt;50ms)
+
+## customizations in this fork
+
+- **temperature graph**: visual 5-day weather forecast chart integrated into weather widget
+- **drag-and-drop links**: reorder links in settings using drag-and-drop interface
+- **same-tab navigation**: links open in current tab instead of new tabs
+- **automated build**: post-build script automatically removes chrome-specific manifest entries
 
 <img width="2331" height="1319" alt="image" src="https://github.com/user-attachments/assets/e3164af7-fc42-4caf-81ee-a049e05b84c7" />
 
@@ -27,19 +34,11 @@ features:
 1. clone/download this repo.
 2. run `npm i` (you must have node.js).
 3. run `npm run build`. you should see it create a `dist` folder.
-4. open the `manifest.json` file in `dist`.
-5. delete these 3 lines from `manifest.json`:
-
-```json
-    "chrome_settings_overrides": {
-        "homepage": "index.html"
-    },
-```
-
-6. go to the chrome extensions manager (`chrome://extensions`).
-7. turn on developer mode in the top right.
-8. click "Load unpacked" in the top left.
-9. select the `dist` folder.
+   - note: the build script now automatically removes chrome-incompatible manifest entries
+4. go to the chrome extensions manager (`chrome://extensions`).
+5. turn on developer mode in the top right.
+6. click "Load unpacked" in the top left.
+7. select the `dist` folder.
 
 ### development / building from source
 
