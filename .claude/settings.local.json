@@ -7,7 +7,12 @@
       "Bash(netstat:*)",
       "Bash(findstr:*)",
       "Bash(git remote add:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(rename:*)",
+      "Bash(git tag:*)"
     ],
     "deny": [],
     "ask": []
