@@ -6,6 +6,7 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build && node scripts/post-build.js",
+        "build:xpi": "npm run build && node scripts/build-xpi.js",
         "preview": "vite preview"
     },
     "devDependencies": {
