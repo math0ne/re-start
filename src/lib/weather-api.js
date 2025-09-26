@@ -28,6 +28,8 @@ class WeatherAPI {
         )
         this._cacheWeather(rawData)
 
+        const dailyForecast = this._processDailyForecast(rawData.daily)
+
         return {
             current: this._processCurrentWeather(rawData.current),
             forecast: this._processHourlyForecast(
@@ -35,6 +37,7 @@ class WeatherAPI {
                 rawData.current.time,
                 timeFormat
             ),
+            dailyForecast: dailyForecast,
         }
     }
 
@@ -55,6 +58,7 @@ class WeatherAPI {
                 cached.data.current.time,
                 timeFormat
             ),
+            dailyForecast: this._processDailyForecast(cached.data.daily || { time: [], temperature_2m_max: [] }),
         }
 
         return {
@@ -103,10 +107,12 @@ class WeatherAPI {
             latitude: latitude.toString(),
             longitude: longitude.toString(),
             hourly: 'temperature_2m,weather_code,is_day',
+            daily: 'temperature_2m_max,weather_code',
             current:
                 'temperature_2m,weather_code,relative_humidity_2m,precipitation_probability,wind_speed_10m,apparent_temperature,is_day',
             timezone: 'auto',
             forecast_hours: '24',
+            forecast_days: '6',
             temperature_unit: tempUnit,
             wind_speed_unit: speedUnit,
         })
@@ -176,6 +182,36 @@ class WeatherAPI {
         }
 
         return forecasts
+    }
+
+    /**
+     * Process daily forecast to get next 5 days
+     */
+    _processDailyForecast(dailyData) {
+        if (!dailyData.time || dailyData.time.length === 0) {
+            return []
+        }
+
+        const forecasts = []
+
+        // Skip today (index 0) and get next 5 days
+        for (let i = 1; i < Math.min(6, dailyData.time.length); i++) {
+            forecasts.push({
+                date: dailyData.time[i],
+                temperature: Math.round(dailyData.temperature_2m_max[i]),
+                day: this._formatDay(dailyData.time[i])
+            })
+        }
+
+        return forecasts
+    }
+
+    /**
+     * Format date to show day of week (e.g., "mon", "tue")
+     */
+    _formatDay(dateString) {
+        const date = new Date(dateString)
+        return date.toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase()
     }
 
     /**

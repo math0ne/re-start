@@ -21,8 +21,6 @@
             {#each column as link}
                 <a
                     href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     class="link"
                 >
                     <span>></span>

@@ -15,6 +15,91 @@
         settings.links = settings.links.filter((_, i) => i !== index)
     }
 
+    let draggedIndex = $state(null)
+    let dropIndicatorIndex = $state(null)
+
+    function handleDragStart(event, index) {
+        draggedIndex = index
+        event.dataTransfer.effectAllowed = 'move'
+        event.dataTransfer.setData('text/html', '')
+    }
+
+    function handleDragOver(event, index) {
+        event.preventDefault()
+        event.dataTransfer.dropEffect = 'move'
+
+        if (draggedIndex === null || draggedIndex === index) {
+            dropIndicatorIndex = null
+            return
+        }
+
+        // Determine if we're dropping above or below the target item
+        const rect = event.currentTarget.getBoundingClientRect()
+        const midY = rect.top + rect.height / 2
+        const isAbove = event.clientY < midY
+
+        // Calculate the drop indicator position
+        if (isAbove) {
+            dropIndicatorIndex = index
+        } else {
+            dropIndicatorIndex = index + 1
+        }
+    }
+
+    function handleDragLeave() {
+        dropIndicatorIndex = null
+    }
+
+    function handleDrop(event, targetIndex) {
+        event.preventDefault()
+
+        if (draggedIndex === null) {
+            draggedIndex = null
+            dropIndicatorIndex = null
+            return
+        }
+
+        // Determine final drop position
+        const rect = event.currentTarget.getBoundingClientRect()
+        const midY = rect.top + rect.height / 2
+        const isAbove = event.clientY < midY
+
+        let dropIndex
+        if (isAbove) {
+            dropIndex = targetIndex
+        } else {
+            dropIndex = targetIndex + 1
+        }
+
+        // Don't move if dropping in the same position
+        if (dropIndex === draggedIndex || dropIndex === draggedIndex + 1) {
+            draggedIndex = null
+            dropIndicatorIndex = null
+            return
+        }
+
+        const newLinks = [...settings.links]
+        const draggedLink = newLinks[draggedIndex]
+
+        // Remove the dragged item
+        newLinks.splice(draggedIndex, 1)
+
+        // Adjust drop index if we removed an item before it
+        const adjustedDropIndex = draggedIndex < dropIndex ? dropIndex - 1 : dropIndex
+
+        // Insert at new position
+        newLinks.splice(adjustedDropIndex, 0, draggedLink)
+
+        settings.links = newLinks
+        draggedIndex = null
+        dropIndicatorIndex = null
+    }
+
+    function handleDragEnd() {
+        draggedIndex = null
+        dropIndicatorIndex = null
+    }
+
     function handleClose() {
         saveSettings(settings)
         closeSettings()
@@ -151,7 +236,31 @@
                 </div>
                 <div class="links-list">
                     {#each settings.links as link, index}
-                        <div class="link">
+                        {#if dropIndicatorIndex === index && draggedIndex !== null}
+                            <div class="drop-indicator"></div>
+                        {/if}
+                        <div
+                            class="link"
+                            class:dragging={draggedIndex === index}
+                            draggable="true"
+                            role="button"
+                            tabindex="0"
+                            ondragstart={(e) => handleDragStart(e, index)}
+                            ondragover={(e) => handleDragOver(e, index)}
+                            ondragleave={handleDragLeave}
+                            ondrop={(e) => handleDrop(e, index)}
+                            ondragend={handleDragEnd}
+                        >
+                            <div class="drag-handle" title="Drag to reorder">
+                                <div class="drag-dots">
+                                    <div class="dot"></div>
+                                    <div class="dot"></div>
+                                    <div class="dot"></div>
+                                    <div class="dot"></div>
+                                    <div class="dot"></div>
+                                    <div class="dot"></div>
+                                </div>
+                            </div>
                             <input
                                 type="text"
                                 bind:value={link.title}
@@ -171,6 +280,9 @@
                                 ×
                             </button>
                         </div>
+                        {#if dropIndicatorIndex === settings.links.length && index === settings.links.length - 1 && draggedIndex !== null}
+                            <div class="drop-indicator"></div>
+                        {/if}
                     {/each}
                 </div>
             </div>
@@ -260,6 +372,53 @@
     .link {
         display: flex;
         margin-bottom: 0.5rem;
+        align-items: center;
+        padding: 0.25rem;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    }
+    .link.dragging {
+        opacity: 0.5;
+        transform: rotate(2deg);
+    }
+    .drop-indicator {
+        height: 2px;
+        background: var(--txt-2);
+        margin: 0.25rem 0;
+        border-radius: 1px;
+        box-shadow: 0 0 4px var(--txt-2);
+        animation: pulse 1s ease-in-out infinite alternate;
+    }
+    @keyframes pulse {
+        from { opacity: 0.6; }
+        to { opacity: 1; }
+    }
+    .drag-handle {
+        cursor: grab;
+        padding: 0.5rem 0.25rem;
+        margin-right: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .drag-handle:active {
+        cursor: grabbing;
+    }
+    .drag-dots {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2px;
+        width: 8px;
+        height: 12px;
+    }
+    .dot {
+        width: 2px;
+        height: 2px;
+        background-color: var(--txt-3);
+        border-radius: 50%;
+    }
+    .drag-handle:hover .dot {
+        background-color: var(--txt-2);
     }
     .link-input.name {
         width: 12rem;

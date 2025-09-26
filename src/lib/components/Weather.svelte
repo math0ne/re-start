@@ -1,10 +1,12 @@
 <script>
     import { onMount, onDestroy, untrack } from 'svelte'
     import WeatherAPI from '../weather-api.js'
+    import TemperatureGraph from './TemperatureGraph.svelte'
     import { settings } from '../settings-store.svelte.js'
 
     let current = $state(null)
     let forecast = $state([])
+    let dailyForecast = $state([])
     let loading = $state(false)
     let error = $state(null)
     let initialLoad = $state(true)
@@ -43,6 +45,7 @@
         if (cached.data) {
             current = cached.data.current
             forecast = cached.data.forecast
+            dailyForecast = cached.data.dailyForecast || []
 
             if (!cached.isStale) {
                 error = null
@@ -64,6 +67,7 @@
 
             current = data.current
             forecast = data.forecast
+            dailyForecast = data.dailyForecast || []
         } catch (err) {
             error = 'failed to load weather'
             console.error(err)
@@ -95,8 +99,13 @@
     {#if error}
         <div class="error">{error}</div>
     {:else if current}
-        <div class="temp">{current.temperature_2m}°</div>
-        <div class="description">{current.description}</div>
+        <div class="current-weather">
+            <div class="current-info">
+                <div class="temp">{current.temperature_2m}°</div>
+                <div class="description">{current.description}</div>
+            </div>
+            <TemperatureGraph {dailyForecast} />
+        </div>
         <br />
         <div class="stats">
             <div class="col">
@@ -146,6 +155,14 @@
 </div>
 
 <style>
+    .current-weather {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    .current-info {
+        flex-shrink: 0;
+    }
     .temp {
         font-size: 2rem;
         font-weight: 300;
