@@ -17,6 +17,9 @@ features:
 - **same-tab navigation**: links open in current tab instead of new tabs
 - **automated build**: post-build script automatically removes chrome-specific manifest entries
 
+### weather widget with temperature graph
+![Weather widget showing 5-day temperature graph](Screenshot%202025-09-26%20125553.png)
+
 <img width="2331" height="1319" alt="image" src="https://github.com/user-attachments/assets/e3164af7-fc42-4caf-81ee-a049e05b84c7" />
 
 ## installation
