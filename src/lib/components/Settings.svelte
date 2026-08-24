@@ -620,6 +620,20 @@
                 </div>
             </div>
             <div class="group">
+                <div class="setting-label">aqi scale</div>
+                <div class="radio-group">
+                    <RadioButton bind:group={settings.aqiScale} value="us">
+                        us
+                    </RadioButton>
+                    <RadioButton
+                        bind:group={settings.aqiScale}
+                        value="european"
+                    >
+                        european
+                    </RadioButton>
+                </div>
+            </div>
+            <div class="group">
                 <div class="setting-label">link behavior</div>
                 <div class="radio-group">
                     <RadioButton bind:group={settings.linkTarget} value="_self">

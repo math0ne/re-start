@@ -28,6 +28,7 @@
         const speedUnit = settings.speedUnit
         const timeFormat = settings.timeFormat
         const forecastMode = settings.forecastMode
+        const aqiScale = settings.aqiScale
 
         if (untrack(() => initialLoad)) {
             initialLoad = false
@@ -120,7 +121,8 @@
                 settings.tempUnit,
                 settings.speedUnit,
                 settings.timeFormat,
-                settings.forecastMode
+                settings.forecastMode,
+                settings.aqiScale
             )
 
             current = data.current
@@ -172,6 +174,11 @@
                             >{current.precipitation_probability}%</span
                         >
                     </div>
+                    <div>
+                        uv&nbsp;&nbsp; <span class="bright"
+                            >{current.uv_index ?? '--'}</span
+                        >
+                    </div>
                 </div>
                 <div class="col">
                     <div>
@@ -182,6 +189,11 @@
                     <div>
                         feel <span class="bright"
                             >{current.apparent_temperature}°</span
+                        >
+                    </div>
+                    <div>
+                        aqi&nbsp; <span class="bright"
+                            >{current.aqi ?? '--'}</span
                         >
                     </div>
                 </div>

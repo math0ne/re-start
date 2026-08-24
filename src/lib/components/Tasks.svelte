@@ -502,13 +502,14 @@
 <style>
     .panel-wrapper {
         flex: 1;
+        min-width: 24rem;
     }
     .widget-header {
         display: flex;
         gap: 1ch;
     }
     .tasks {
-        max-height: 15rem;
+        max-height: 16.5rem;
         overflow: auto;
         scrollbar-width: none;
         scroll-snap-type: y proximity;

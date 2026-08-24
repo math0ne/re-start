@@ -6,6 +6,8 @@ import descriptions from '../../assets/descriptions.json'
 class WeatherAPI {
     constructor() {
         this.baseUrl = 'https://api.open-meteo.com/v1/forecast'
+        this.airQualityUrl =
+            'https://air-quality-api.open-meteo.com/v1/air-quality'
         this.cacheKey = 'weather_data'
         this.cacheExpiry = 15 * 60 * 1000
     }
@@ -19,14 +21,16 @@ class WeatherAPI {
         tempUnit,
         speedUnit,
         timeFormat = '12hr',
-        forecastMode = 'hourly'
+        forecastMode = 'hourly',
+        aqiScale = 'us'
     ) {
         const rawData = await this._fetchWeatherData(
             latitude,
             longitude,
             tempUnit,
             speedUnit,
-            forecastMode
+            forecastMode,
+            aqiScale
         )
         this._cacheWeather(rawData, latitude, longitude)
 
@@ -147,13 +151,14 @@ class WeatherAPI {
         longitude,
         tempUnit,
         speedUnit,
-        forecastMode = 'hourly'
+        forecastMode = 'hourly',
+        aqiScale = 'us'
     ) {
         const baseParams = {
             latitude: latitude.toString(),
             longitude: longitude.toString(),
             current:
-                'temperature_2m,weather_code,relative_humidity_2m,precipitation_probability,wind_speed_10m,apparent_temperature,is_day',
+                'temperature_2m,weather_code,relative_humidity_2m,precipitation_probability,wind_speed_10m,apparent_temperature,is_day,uv_index',
             timezone: 'auto',
             temperature_unit: tempUnit,
             wind_speed_unit: speedUnit,
@@ -170,12 +175,38 @@ class WeatherAPI {
 
         const params = new URLSearchParams(baseParams)
 
-        const response = await fetch(`${this.baseUrl}?${params}`)
+        const [response, airQuality] = await Promise.all([
+            fetch(`${this.baseUrl}?${params}`),
+            this._fetchAirQuality(latitude, longitude, aqiScale),
+        ])
         if (!response.ok) {
             throw new Error(`HTTP ${response.status} ${response.statusText}`)
         }
         const data = await response.json()
+        data.current.aqi = airQuality
         return data
+    }
+
+    /**
+     * Fetch current AQI from the air quality API (null on failure)
+     */
+    async _fetchAirQuality(latitude, longitude, aqiScale = 'us') {
+        const aqiParam = aqiScale === 'european' ? 'european_aqi' : 'us_aqi'
+        try {
+            const params = new URLSearchParams({
+                latitude: latitude.toString(),
+                longitude: longitude.toString(),
+                current: aqiParam,
+                timezone: 'auto',
+            })
+            const response = await fetch(`${this.airQualityUrl}?${params}`)
+            if (!response.ok) return null
+            const data = await response.json()
+            return data.current?.[aqiParam] ?? null
+        } catch (error) {
+            console.error('failed to fetch air quality:', error)
+            return null
+        }
     }
 
     /**
@@ -187,6 +218,8 @@ class WeatherAPI {
             temperature_2m: currentData.temperature_2m.toFixed(0),
             wind_speed_10m: currentData.wind_speed_10m.toFixed(0),
             apparent_temperature: currentData.apparent_temperature.toFixed(0),
+            uv_index: currentData.uv_index?.toFixed(0) ?? null,
+            aqi: currentData.aqi ?? null,
             description: this._getWeatherDescription(
                 currentData.weather_code,
                 currentData.is_day === 1
