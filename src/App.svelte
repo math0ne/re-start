@@ -19,10 +19,14 @@
     const googleTasksAvailable = isChrome()
 
     let needsConfiguration = $derived(
-        (settings.locationMode === 'manual' &&
+        (settings.showWeather &&
+            settings.locationMode === 'manual' &&
             (settings.latitude === null || settings.longitude === null)) ||
-            (settings.taskBackend === 'todoist' && !settings.todoistApiToken) ||
-            (settings.taskBackend === 'google-tasks' &&
+            (settings.showTasks &&
+                settings.taskBackend === 'todoist' &&
+                !settings.todoistApiToken) ||
+            (settings.showTasks &&
+                settings.taskBackend === 'google-tasks' &&
                 googleTasksAvailable &&
                 !settings.googleTasksSignedIn)
     )
